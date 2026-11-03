@@ -1,0 +1,42 @@
+{
+  "name": "icpay-bucket",
+  "version": "1.3.0",
+  "description": "ICPay Bucket client — full on-chain file storage API for the Internet Computer",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "README.md", "LICENSE"],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test test/client.test.mjs",
+    "prepublishOnly": "npm run build && npm run test"
+  },
+  "homepage": "https://icpay.app/icpay-bucket-sdk",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/prasangaramanpokharel/ICPay.git"
+  },
+  "bugs": {
+    "url": "https://gitlab.com/prasangapokharel/icbucket/-/issues"
+  },
+  "keywords": ["icp", "internet-computer", "bucket", "storage", "cloud", "icpay", "s3", "aws-s3"],
+  "dependencies": {
+    "@icp-sdk/core": "^6.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}

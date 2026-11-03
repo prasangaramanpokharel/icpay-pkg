@@ -1,0 +1,14 @@
+node_modules/
+target/
+.dart_tool/
+.packages
+build/
+dist/
+*.egg-info/
+__pycache__/
+*.pyc
+*.o
+*.a
+test_runner
+.DS_Store
+*.env

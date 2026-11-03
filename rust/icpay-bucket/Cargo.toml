@@ -1,0 +1,16 @@
+[package]
+name = "icpay-bucket"
+version = "1.1.0"
+edition = "2021"
+description = "ICPay Bucket client — on-chain cloud file storage SDK for Rust"
+license = "MIT"
+repository = "https://github.com/prasangapokharel/icpay-bucket"
+
+[dependencies]
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "1.0"
+tokio = { version = "1.0", features = ["sync", "time"] }
+bytes = { version = "1.0", features = ["serde"] }
+urlencoding = "2.1"

@@ -1,0 +1,15 @@
+name: icpay_bucket
+description: Official Flutter & Dart SDK for ICPay Cloud / icBucket decentralized storage on the Internet Computer.
+version: 1.0.0
+homepage: https://icpay.app
+repository: https://github.com/prasangapokharel/icpay-bucket-dart
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  http: ^1.2.0
+
+dev_dependencies:
+  test: ^1.25.0
+  lints: ^3.0.0

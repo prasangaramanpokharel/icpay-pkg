@@ -1,0 +1,17 @@
+package app.icpay.bucket.error;
+
+public enum ErrorCode {
+    AUTHENTICATION_FAILED,
+    PERMISSION_DENIED,
+    BUCKET_NOT_FOUND,
+    FILE_NOT_FOUND,
+    INVALID_PATH,
+    INVALID_REQUEST,
+    CAPACITY_EXCEEDED,
+    BUCKET_EXPIRED,
+    UPLOAD_FAILED,
+    CHUNK_FAILED,
+    RATE_LIMITED,
+    NETWORK,
+    INTERNAL
+}

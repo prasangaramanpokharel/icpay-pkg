@@ -1,0 +1,10 @@
+[package]
+name = "icpay-bucket"
+version = "1.0.0"
+description = "Motoko inter-canister client library for ICPay Bucket decentralized on-chain storage"
+repository = "https://github.com/prasangapokharel/icpay-bucket"
+keywords = ["icp", "storage", "bucket", "canister", "icpay"]
+license = "MIT"
+
+[dependencies]
+base = "0.11.1"

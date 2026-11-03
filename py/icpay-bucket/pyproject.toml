@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "icpay-bucket"
+version = "1.1.2"
+description = "ICPay Bucket client — full on-chain file storage API for the Internet Computer"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+keywords = ["icp", "internet-computer", "bucket", "storage", "cloud", "icpay"]
+dependencies = ["ic-py>=1.0.1", "cbor2>=5.4.2,<6"]
+
+[project.urls]
+Homepage = "https://icpay.app/icpay-bucket-sdk"
+Documentation = "https://icpay.app/bucket/docs"
+Repository = "https://github.com/prasangapokharel/icpay-bucket"
+
+[tool.setuptools.packages.find]
+include = ["icpay_bucket*"]
