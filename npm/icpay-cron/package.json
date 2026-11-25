@@ -1,0 +1,56 @@
+{
+  "name": "icpay-cron",
+  "version": "1.0.2",
+  "description": "icCron SDK — Autonomous On-Chain Scheduled Triggers and Webhook Dispatcher on the Internet Computer",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test test/client.test.mjs",
+    "prepublishOnly": "npm run build && npm run test"
+  },
+  "homepage": "https://icpay.app/iccron",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/prasangaramanpokharel/ICPay.git"
+  },
+  "bugs": {
+    "url": "https://github.com/prasangaramanpokharel/ICPay/issues"
+  },
+  "keywords": [
+    "icp",
+    "internet-computer",
+    "cron",
+    "scheduler",
+    "webhooks",
+    "icpay",
+    "iccron",
+    "serverless",
+    "automation"
+  ],
+  "dependencies": {
+    "@icp-sdk/core": "^6.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}

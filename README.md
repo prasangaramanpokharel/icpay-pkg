@@ -1,10 +1,12 @@
 # ICPay Client SDKs (`icpay-pkg`)
 
-Official client SDKs for ICPay Cloud / icBucket decentralized on-chain storage on the Internet Computer.
+Official client SDKs for ICPay Cloud:
+- **icBucket**: Decentralized on-chain file storage on the Internet Computer
+- **icCron**: Autonomous on-chain scheduled triggers and webhook dispatcher
 
 ---
 
-## Supported Languages
+## 1. icBucket SDKs (Decentralized Storage)
 
 | Language / Framework | Directory | Registry / Module |
 |---|---|---|
@@ -19,11 +21,7 @@ Official client SDKs for ICPay Cloud / icBucket decentralized on-chain storage o
 | **C++ (C++17)** | [`c++/icpay-bucket`](c++/icpay-bucket) | `libicbucket_cpp.a` |
 | **Motoko** | [`motoko/icpay-bucket`](motoko/icpay-bucket) | `mops add icpay-bucket` |
 
----
-
-## Quickstart by Language
-
-### TypeScript / Node.js
+### TypeScript Quickstart
 
 ```typescript
 import { BucketClient } from "icpay-bucket"
@@ -38,7 +36,7 @@ const res = await client.files.upload({
 })
 ```
 
-### Python
+### Python Quickstart
 
 ```python
 from icpay_bucket import BucketClient
@@ -51,165 +49,57 @@ with BucketClient(api_key="YOUR_API_KEY", bucket_id="my-bucket") as client:
     )
 ```
 
-### Rust
+---
+
+## 2. icCron SDKs (Autonomous Scheduler)
+
+| Language | Directory | Registry / Module |
+|---|---|---|
+| **TypeScript / Node.js** | [`npm/icpay-cron`](npm/icpay-cron) | `npm i icpay-cron` |
+| **Python** | [`py/icpay-cron`](py/icpay-cron) | `pip install icpay-cron` |
+| **Rust** | [`rust/icpay-cron`](rust/icpay-cron) | `cargo add icpay-cron` |
+| **Go** | [`go/icpay-cron`](go/icpay-cron) | `go get github.com/prasangaramanpokharel/icpay-pkg/go/icpay-cron` |
+| **PHP** | [`php/icpay-cron`](php/icpay-cron) | `composer require prasangapokharel/icpay-cron` |
+
+### TypeScript Quickstart
+
+```typescript
+import { IcCronClient } from "icpay-cron"
+
+const client = new IcCronClient({
+  apiKey: process.env.ICCRON_API_KEY
+})
+
+const job = await client.createJob({
+  projectId: 1,
+  label: "Hourly Sync",
+  cronExpression: "0 * * * *",
+  target: {
+    type: "HttpWebhook",
+    url: "https://example.com/api/cron",
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ event: "sync" })
+  }
+})
+```
+
+### Python Quickstart
+
+```python
+from icpay_cron import IcCronClient
+
+client = IcCronClient(api_key="YOUR_API_KEY")
+res = client.trigger(project_id="PROJ_ID", job_id=1)
+```
+
+### Rust Quickstart
 
 ```rust
-use icpay_bucket::{ClientConfig, ICBucket, UploadPayload};
+use icpay_cron::IcCronClient;
 
-let config = ClientConfig {
-    api_key: "YOUR_API_KEY".to_string(),
-    bucket_id: "my-bucket".to_string(),
-    endpoint: None,
-    cdn_host: None,
-    timeout_ms: None,
-};
-let client = ICBucket::new(config)?;
-
-let uploaded = client.files.upload(UploadPayload {
-    path: "/documents/report.pdf".to_string(),
-    data: bytes::Bytes::from("file payload"),
-    content_type: Some("application/pdf".to_string()),
-    tags: None,
-    visibility: None,
-}).await?;
-```
-
-### Go
-
-```go
-package main
-
-import (
-    "context"
-    icbucket "github.com/prasangapokharel/icpay-bucket-go"
-)
-
-func main() {
-    client, err := icbucket.NewClient(icbucket.Config{
-        APIKey:        "YOUR_API_KEY",
-        DefaultBucket: "my-bucket",
-    })
-    if err != nil {
-        panic(err)
-    }
-
-    ctx := context.Background()
-    res, err := client.UploadFile(ctx, icbucket.UploadFileParams{
-        Path:        "/documents/report.pdf",
-        Data:        []byte("file payload"),
-        ContentType: "application/pdf",
-    })
-}
-```
-
-### Flutter & Dart
-
-```dart
-import 'dart:convert';
-import 'dart:typed_data';
-import 'package:icpay_bucket/icpay_bucket.dart';
-
-void main() async {
-  final client = ICBucketClient(
-    apiKey: 'YOUR_API_KEY',
-    bucketId: 'my-bucket',
-  );
-
-  final data = Uint8List.fromList(utf8.encode('file payload'));
-  final uploaded = await client.files.upload(
-    path: '/documents/notes.txt',
-    data: data,
-    contentType: 'text/plain',
-  );
-}
-```
-
-### Java
-
-```java
-import app.icpay.bucket.Client;
-import app.icpay.bucket.model.FileMetadata;
-import java.nio.charset.StandardCharsets;
-
-public class Main {
-    public static void main(String[] args) {
-        Client client = new Client("YOUR_API_KEY", "my-bucket");
-        byte[] data = "file payload".getBytes(StandardCharsets.UTF_8);
-
-        FileMetadata uploaded = client.files.upload(
-            "/documents/notes.txt",
-            data,
-            "text/plain",
-            null,
-            null
-        );
-    }
-}
-```
-
-### PHP
-
-```php
-use ICPay\Bucket\Client;
-
-$client = new Client('YOUR_API_KEY', 'my-bucket');
-
-$uploaded = $client->files->upload(
-    '/documents/notes.txt',
-    'file payload',
-    'text/plain'
-);
-```
-
-### C
-
-```c
-#include "icbucket.h"
-
-int main() {
-    icbucket_config_t config = {0};
-    strncpy(config.api_key, "YOUR_API_KEY", sizeof(config.api_key) - 1);
-    strncpy(config.bucket_id, "my-bucket", sizeof(config.bucket_id) - 1);
-
-    icbucket_client_t client;
-    icbucket_init(&client, &config);
-
-    icbucket_file_metadata_t meta;
-    icbucket_upload_file(&client, "/documents/notes.txt", "file payload", 12, "text/plain", &meta);
-    icbucket_free(&client);
-    return 0;
-}
-```
-
-### C++
-
-```cpp
-#include <icbucket/client.hpp>
-
-int main() {
-    icbucket::ClientConfig config;
-    config.api_key = "YOUR_API_KEY";
-    config.bucket_id = "my-bucket";
-
-    icbucket::Client client(config);
-    std::string payload = "file payload";
-    auto meta = client.files.upload("/documents/notes.txt", payload, "text/plain");
-    return 0;
-}
-```
-
-### Motoko
-
-```motoko
-import Principal "mo:core/Principal";
-import BucketClient "mo:icpay-bucket";
-
-actor {
-  let client = BucketClient.Client({
-    canisterId = Principal.fromText("6vbhm-nqaaa-aaaan-q6muq-cai");
-    apiKey = null;
-  });
-};
+let client = IcCronClient::new("YOUR_API_KEY", None, None);
+let res = client.trigger("PROJ_ID", 1).await?;
 ```
 
 ---
