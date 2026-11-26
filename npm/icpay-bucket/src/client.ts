@@ -27,6 +27,12 @@ import type {
   UploadStatus,
 } from "./types.js"
 import { SINGLE_MAX_BYTES } from "./types.js"
+import {
+  MultipartUploader,
+  type MultipartUploadOptions,
+  type UploadProgress,
+  type UploadResult,
+} from "./upload/index.js"
 
 export type BucketClientOptions = {
   apiKey?: string
@@ -37,14 +43,8 @@ export type BucketClientOptions = {
   cdnHost?: string
 }
 
-export type UploadOptions = {
-  bucketId?: string
-  path: string
-  data: Uint8Array
-  contentType?: string
-  apiKey?: string
+export type UploadOptions = MultipartUploadOptions & {
   autoChunk?: boolean
-  chunkSize?: number
 }
 
 function opt(value?: string): [] | [string] {
@@ -248,57 +248,35 @@ export class BucketClient {
     return this.actor.getBucketCycleStatus()
   }
 
+  upload(options: MultipartUploadOptions): Promise<UploadResult> {
+    const target = options.bucketId ?? this.defaultBucketId
+    if (!target) {
+      throw new ICBucketError("INVALID_REQUEST", "bucketId is required")
+    }
+    const uploader = new MultipartUploader(this.actor, {
+      ...options,
+      bucketId: target,
+      apiKey: options.apiKey ?? this.apiKey,
+    })
+    return uploader.upload()
+  }
+
   async uploadFile(options: UploadOptions): Promise<ApiResult<string>> {
     const targetBucket = options.bucketId ?? this.defaultBucketId
     if (!targetBucket) {
       return { err: "bucketId is required" }
     }
-
-    if (options.data.byteLength > SINGLE_MAX_BYTES) {
-      if (options.autoChunk === false) {
-        return { err: "File too large for single upload" }
-      }
-
-      const totalSize = BigInt(options.data.byteLength)
-      const begin = await this.actor.beginFileUpload(
-        targetBucket,
-        options.path,
-        options.contentType ?? "application/octet-stream",
-        totalSize,
-        this.key(options.apiKey)
-      )
-      if ("err" in begin) {
-        return begin
-      }
-
-      const uploadId = begin.ok
-      const chunkSize = options.chunkSize ?? 1_500_000
-      const totalChunks = Math.ceil(options.data.byteLength / chunkSize)
-
-      for (let i = 0; i < totalChunks; i++) {
-        const start = i * chunkSize
-        const end = Math.min(start + chunkSize, options.data.byteLength)
-        const chunkData = options.data.subarray(start, end)
-        const chunkRes = await this.actor.uploadFileChunkIndexed(uploadId, BigInt(i), chunkData)
-        if ("err" in chunkRes) {
-          try {
-            await this.actor.cancelUpload(uploadId)
-          } catch {
-          }
-          return { err: `Chunk ${i} failed: ${chunkRes.err}` }
-        }
-      }
-
-      return this.actor.completeFileUpload(uploadId, this.key(options.apiKey))
+    try {
+      const uploader = new MultipartUploader(this.actor, {
+        ...options,
+        bucketId: targetBucket,
+        apiKey: options.apiKey ?? this.apiKey,
+      })
+      const res = await uploader.upload()
+      return { ok: res.fileId }
+    } catch (err) {
+      return { err: err instanceof Error ? err.message : String(err) }
     }
-
-    return this.actor.uploadFile(
-      targetBucket,
-      options.path,
-      options.data,
-      options.contentType ?? "application/octet-stream",
-      this.key(options.apiKey)
-    )
   }
 
   beginFileUpload(

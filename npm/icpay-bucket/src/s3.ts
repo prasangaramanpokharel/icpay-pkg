@@ -1,6 +1,7 @@
 import { BucketClient, type BucketClientOptions, type UploadOptions } from "./client.js"
 import { ICBucketError, unwrapResult } from "./errors.js"
 import type { ApiResult, FileListPage, FilePublic } from "./types.js"
+import type { UploadProgress } from "./upload/index.js"
 
 export interface S3ClientCredentials {
   accessKeyId?: string
@@ -23,6 +24,10 @@ export interface PutObjectCommandInput {
   ContentType?: string
   Metadata?: Record<string, string>
   Tags?: string[]
+  concurrency?: number
+  partSize?: number
+  onProgress?: (progress: UploadProgress) => void
+  signal?: AbortSignal
 }
 
 export interface PutObjectCommandOutput {
@@ -227,6 +232,10 @@ export class S3Client {
       path,
       data,
       contentType: input.ContentType ?? "application/octet-stream",
+      concurrency: input.concurrency,
+      chunkSize: input.partSize,
+      onProgress: input.onProgress,
+      signal: input.signal,
     }
 
     const res = await this.client.uploadFile(uploadOptions)
@@ -441,6 +450,62 @@ export class S3Client {
       },
       $metadata: { httpStatusCode: 200 },
     }
+  }
+}
+
+export interface UploadOptionsConfig {
+  client: S3Client
+  params: PutObjectCommandInput
+  queueSize?: number
+  partSize?: number
+  leavePartsOnError?: boolean
+  abortController?: AbortController
+}
+
+export class Upload {
+  private readonly client: S3Client
+  private readonly params: PutObjectCommandInput
+  private readonly queueSize?: number
+  private readonly partSize?: number
+  private readonly leavePartsOnError?: boolean
+  private readonly abortController: AbortController
+  private readonly listeners = new Map<string, ((...args: any[]) => void)[]>()
+
+  constructor(options: UploadOptionsConfig) {
+    this.client = options.client
+    this.params = options.params
+    this.queueSize = options.queueSize
+    this.partSize = options.partSize
+    this.leavePartsOnError = options.leavePartsOnError
+    this.abortController = options.abortController ?? new AbortController()
+  }
+
+  on(event: "httpUploadProgress", listener: (progress: UploadProgress) => void): this {
+    const list = this.listeners.get(event) ?? []
+    list.push(listener)
+    this.listeners.set(event, list)
+    return this
+  }
+
+  async done(): Promise<PutObjectCommandOutput> {
+    return this.client.putObject({
+      ...this.params,
+      concurrency: this.queueSize,
+      partSize: this.partSize,
+      signal: this.abortController.signal,
+      onProgress: (p) => {
+        const callbacks = this.listeners.get("httpUploadProgress")
+        if (callbacks) {
+          for (const cb of callbacks) {
+            cb(p)
+          }
+        }
+      },
+    })
+  }
+
+  async abort(): Promise<void> {
+    this.abortController.abort()
   }
 }
 

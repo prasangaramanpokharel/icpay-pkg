@@ -15,6 +15,7 @@ export {
 export {
   S3Client,
   S3BucketClient,
+  Upload,
   PutObjectCommand,
   GetObjectCommand,
   ListObjectsV2Command,
@@ -38,7 +39,43 @@ export {
   type HeadObjectCommandOutput,
   type CopyObjectCommandInput,
   type CopyObjectCommandOutput,
+  type UploadOptionsConfig,
 } from "./s3.js"
+
+export {
+  MultipartUploader,
+  ConcurrentQueue,
+  ProgressTracker,
+  retryWithBackoff,
+  computeSha256,
+  toUint8Array,
+  type RetryOptions,
+  type UploadProgress,
+  type MultipartUploadOptions,
+  type ChunkDescriptor,
+  type UploadResult,
+  type UploadSessionState,
+} from "./upload/index.js"
+
+export {
+  StorageClient as SupabaseStorageClient,
+  StorageFileApi as SupabaseStorageFileApi,
+  createClient as createSupabaseClient,
+  type StorageError,
+  type StorageResponse,
+  type FileOptions as SupabaseFileOptions,
+  type SearchOptions as SupabaseSearchOptions,
+  type FileObject as SupabaseFileObject,
+} from "./supabase.js"
+
+export {
+  Storage as GcsStorage,
+  GcsBucket,
+  GcsFile,
+  type StorageOptions as GcsStorageOptions,
+  type SaveOptions as GcsSaveOptions,
+  type GetFilesOptions as GcsGetFilesOptions,
+} from "./gcs.js"
 
 export {
   ICBucketError,

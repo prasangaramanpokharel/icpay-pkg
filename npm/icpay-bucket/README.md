@@ -2,7 +2,7 @@
 
 TypeScript & Node.js client for [ICPay Bucket](https://icpay.app) — high-performance on-chain file storage on the Internet Computer.
 
-**Canister:** `6vbhm-nqaaa-aaaan-q6muq-cai` · **Version:** 1.3.0
+**Canister:** `6vbhm-nqaaa-aaaan-q6muq-cai` · **Version:** 1.4.0
 
 **Docs:** [Package guide](https://icpay.app/icpay-bucket-sdk) · [API reference](https://icpay.app/bucket/docs)
 
@@ -12,6 +12,37 @@ TypeScript & Node.js client for [ICPay Bucket](https://icpay.app) — high-perfo
 
 ```bash
 npm install icpay-bucket
+```
+
+---
+
+## Concurrent Multipart Upload & Progress Tracking (v1.4.0)
+
+Built-in zero-dependency worker pool engine supporting bounded concurrency, exponential backoff with jitter, WebCrypto SHA-256 integrity, and real-time progress events:
+
+```ts
+import { BucketClient, Upload } from "icpay-bucket"
+
+const client = new BucketClient({ apiKey: process.env.BUCKET_API_KEY, bucketId: "icp" })
+
+// 1. High-throughput upload with real-time progress
+const result = await client.upload({
+  path: "/videos/presentation.mp4",
+  data: fileBuffer,
+  concurrency: 6,
+  onProgress: (p) => {
+    console.log(`${p.percentage}% | Speed: ${p.speed} B/s | ETA: ${p.etaSeconds}s`)
+  },
+})
+
+// 2. AWS S3 @aws-sdk/lib-storage compatibility
+const s3Upload = new Upload({
+  client: s3,
+  params: { Bucket: "icp", Key: "build.tar", Body: tarBuffer },
+  queueSize: 4,
+})
+s3Upload.on("httpUploadProgress", (p) => console.log(p.loaded, p.total))
+await s3Upload.done()
 ```
 
 ---
@@ -56,7 +87,7 @@ await client.files.delete("/documents/report.pdf")
 
 ---
 
-## AWS S3 SDK v3 Drop-in Compatibility
+## AWS S3 & Cloudflare R2 Drop-in Compatibility
 
 `icpay-bucket` includes an AWS SDK v3 compatible client (`S3Client`, `PutObjectCommand`, `GetObjectCommand`, `ListObjectsV2Command`, `DeleteObjectCommand`, `HeadObjectCommand`, `CopyObjectCommand`):
 
@@ -68,6 +99,7 @@ import {
   ListObjectsV2Command,
   DeleteObjectCommand,
 } from "icpay-bucket"
+// or import from "icpay-bucket/s3"
 
 const s3 = new S3Client({
   credentials: {
@@ -87,6 +119,53 @@ await s3.send(
     Metadata: { project: "icpay" },
   })
 )
+```
+
+---
+
+## Supabase Storage Drop-in Compatibility
+
+Migrate from Supabase Storage (`@supabase/storage-js` or `@supabase/supabase-js`) in **1 line** by changing your import to `icpay-bucket/supabase`:
+
+```ts
+import { createClient } from "icpay-bucket/supabase"
+
+const supabase = createClient({ apiKey: process.env.ICPAY_BUCKET_KEY })
+
+// Exactly identical Supabase API!
+const { data, error } = await supabase.storage
+  .from("avatars")
+  .upload("user-1.png", fileBuffer, {
+    contentType: "image/png",
+    upsert: true,
+  })
+
+// Get Public CDN URL
+const { data: { publicUrl } } = supabase.storage
+  .from("avatars")
+  .getPublicUrl("user-1.png")
+```
+
+---
+
+## Google Cloud Storage (GCS) Drop-in Compatibility
+
+Migrate from Google Cloud Storage (`@google-cloud/storage`) in **1 line** by changing your import to `icpay-bucket/gcs`:
+
+```ts
+import { Storage } from "icpay-bucket/gcs"
+
+const storage = new Storage({ apiKey: process.env.ICPAY_BUCKET_KEY })
+
+// Exactly identical Google Cloud Storage API!
+const bucket = storage.bucket("my-bucket")
+const file = bucket.file("reports/2026.pdf")
+
+await file.save(pdfBuffer, { contentType: "application/pdf" })
+
+const [contents] = await file.download()
+const url = file.publicUrl()
+```
 
 // 2. GetObject & Stream / String transformation
 const response = await s3.send(
